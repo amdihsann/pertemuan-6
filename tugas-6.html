@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API</title>
+</head>
+<body>
+    <h1 align="center">Todo List</h1>
+    <hr>
+    
+    <button id="fetch-data" onclick="getAllData()">Get All Data</button><br><br>
+
+    <button id="submit-todo" onclick="submitTodo()">Submit</button>
+    <input type="text" id="title" placeholder="Title">
+    <input type="text" id="description" placeholder="Description"><br><br>
+
+    <button onclick="getTodoById()">Get by ID</button>
+    <input type="text" id="todoId" placeholder="Todo ID"><br><br>
+ 
+    <button onclick="deleteTodoById()">Delete by ID</button>
+    <input type="text" id="deleteTodoId" placeholder="Todo ID to delete"><br><br>
+
+    <button onclick="patchTodoById()">Patch by ID</button>
+    <input type="text" id="patchTodoId" placeholder="Todo ID to patch">
+    <input type="text" id="patchTitle" placeholder="New Title">
+    <input type="text" id="patchDescription" placeholder="New Description"><br><br>
+
+    <ul id="todo-lists"></ul>
+
+    <script>
+     
+        function getAllData() {
+            const ul = document.getElementById('todo-lists');
+            ul.innerHTML = '';
+
+            const url = 'https://api.freeapi.app/api/v1/todos?complete=false';
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.send();
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log(response); 
+                    const todos = response.data;
+
+                    todos.forEach(todo => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>ID: ${todo._id}</strong> - <strong>${todo.title}</strong> - ${todo.description}`;
+                        ul.appendChild(li);
+                    });
+                }
+            }
+        }
+
+       
+        function submitTodo() {
+            const inputTitle = document.getElementById('title');
+            const inputDescription = document.getElementById('description');
+
+            const url = 'https://api.freeapi.app/api/v1/todos/';
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+
+            const data = {
+                title: inputTitle.value,
+                description: inputDescription.value
+            }
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.send(JSON.stringify(data));
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 201) {
+                    console.log('Todo berhasil ditambahkan:', xhr.responseText);
+                    getAllData(); 
+                }
+            }
+
+            
+            inputTitle.value = '';
+            inputDescription.value = '';
+        }
+
+        
+        function getTodoById() {
+            const inputTodoId = document.getElementById('todoId');
+            const todoId = inputTodoId.value;
+
+            if (!inputTodoId.value) { 
+            alert("Masukkan ID todo untuk diambil!");
+            return;
+            }
+
+            const url = `https://api.freeapi.app/api/v1/todos/${todoId}`;
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.send();
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(`Title: ${response.data.title}\nDescription: ${response.data.description}`);
+                } else if (this.readyState === 4) {
+                    alert("Todo tidak ditemukan");
+                }
+            }
+           
+            
+            inputTodoId.value = '';
+        }
+
+       
+        function deleteTodoById() {
+            const inputDeleteTodoId = document.getElementById('deleteTodoId');
+            const deleteTodoById = inputDeleteTodoId.value;
+            const todoId = inputDeleteTodoId.value;
+
+            if (!inputDeleteTodoId.value) {
+            alert("Masukkan ID todo untuk dihapus!");
+            return;
+            }
+
+            const url = `https://api.freeapi.app/api/v1/todos/${todoId}`;
+            const xhr = new XMLHttpRequest();
+            xhr.open('DELETE', url, true);
+            xhr.send();
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    alert("Todo berhasil dihapus");
+                    getAllData();
+                } else if (this.readyState === 4) {
+                    alert("Gagal menghapus todo");
+                }
+            }
+
+             
+             inputDeleteTodoId.value = '';
+        }
+
+ 
+        function patchTodoById() {
+            const inputPatchTodoId = document.getElementById('patchTodoId');
+            const inputPatchTitle = document.getElementById('patchTitle');
+            const inputPatchDescription = document.getElementById('patchDescription');
+            const newTitle = inputPatchTitle.value;
+            const newDescription = inputPatchDescription.value;
+            const todoId = inputPatchTodoId.value;
+
+
+            if (!inputPatchTodoId.value) {
+                alert("Masukkan ID todo untuk diubah!");
+                return;
+            }
+
+            const url = `https://api.freeapi.app/api/v1/todos/${todoId}`;
+            const xhr = new XMLHttpRequest();
+            xhr.open('PATCH', url, true);
+
+            const data = {};
+            if (newTitle) data.title = newTitle;
+            if (newDescription) data.description = newDescription;
+
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.send(JSON.stringify(data));
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    alert("Todo berhasil diperbarui");
+                    getAllData(); 
+                } else if (this.readyState === 4) {
+                    alert("Gagal memperbarui todo");
+                }
+            }
+            inputPatchTodoId.value = '';
+            inputPatchTitle.value = '';
+            inputPatchDescription.value = '';
+        }
+    </script>
+</body>
+</html>
